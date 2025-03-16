@@ -157,7 +157,7 @@
                     }
 
                     // Send the encrypted message and file to the server
-                    fetch('https://your-server-endpoint', {
+                    fetch('/api/messages', {
                         method: 'POST',
                         body: formData
                     })
@@ -176,7 +176,7 @@
                 formData.append('message', encryptedMessage);
 
                 // Send the encrypted message to the server
-                fetch('https://your-server-endpoint', {
+                fetch('/api/messages', {
                     method: 'POST',
                     body: formData
                 })
