@@ -116,3 +116,70 @@ app.post('/api/receive', upload.single('file'), async (req, res) => {
 app.listen(3000, () => {
 	console.log('Server is running on port 3000');
 });
+
+
+
+
+/*recived files and messagea*/
+document.getElementById('messageForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const message = document.getElementById('message').value;
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
+
+    // Encrypt the message
+    const encryptedMessage = CryptoJS.AES.encrypt(message, 'secret key 123').toString();
+
+    // Encrypt the file if it exists
+    let encryptedFile = null;
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fileContent = e.target.result;
+            encryptedFile = CryptoJS.AES.encrypt(fileContent, 'secret key 123').toString();
+
+            // Create a FormData object to send the encrypted message and file
+            const formData = new FormData();
+            formData.append('message', encryptedMessage);
+            if (encryptedFile) {
+                formData.append('file', encryptedFile);
+            }
+
+            // Send the encrypted message and file to the server
+            fetch('http://localhost:5000/upload', {  // Change the URL to match your server
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                // Update the page with the received data
+                updateReceivedData(data.message, data.file);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+        reader.readAsDataURL(file);
+    } else {
+        // Create a FormData object to send the encrypted message
+        const formData = new FormData();
+        formData.append('message', encryptedMessage);
+
+        // Send the encrypted message to the server
+        fetch('http://localhost:5000/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            // Update the page with the received data
+            updateReceivedData(data.message);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+});
