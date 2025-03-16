@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const receivedRouter = require('../../api/received');
+const messagesRouter = require('../../api/messages');
 
 // Initialize Express app
 const app = express();
@@ -68,6 +70,10 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         res.status(500).json({ error: 'Error saving message and file', details: err });
     }
 });
+
+// Use the existing routers
+app.use('/api', receivedRouter);
+app.use('/api', messagesRouter);
 
 // Start server
 app.listen(PORT, () => {

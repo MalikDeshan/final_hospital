@@ -110,17 +110,43 @@
             <!-- Received Message and File Section -->
             <div class="received-message">
                 <h2>Received Message</h2>
-                <p id="receivedMessage">No message yet.</p>
-                <p id="receivedFile"></p>
-                <button id="downloadBtn" style="display:none;">Download File</button>
+                <div id="receivedMessages"></div>
             </div>
         </main>
     </section>
     <!-- CONTENT -->
 
     <!-- External Script -->
-    <script src="script.js"></script>
+    <script src="../js/script.js"></script>
     <!-- CryptoJS Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script>
+        async function fetchReceivedData() {
+            const response = await fetch('/api/received');
+            if (response.ok) {
+                const data = await response.json();
+                const receivedMessages = document.getElementById('receivedMessages');
+                receivedMessages.innerHTML = '';
+                data.forEach(item => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message-item');
+                    const messageContent = document.createElement('p');
+                    messageContent.textContent = CryptoJS.AES.decrypt(item.message, 'secret key 123').toString(CryptoJS.enc.Utf8);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(new Blob([CryptoJS.AES.decrypt(item.file, 'secret key 123').toString(CryptoJS.enc.Utf8)], { type: 'application/octet-stream' }));
+                    downloadLink.download = 'received_file';
+                    downloadLink.textContent = 'Download File';
+                    downloadLink.classList.add('download-link');
+                    messageDiv.appendChild(messageContent);
+                    messageDiv.appendChild(downloadLink);
+                    receivedMessages.appendChild(messageDiv);
+                });
+            } else {
+                alert('Failed to fetch received data');
+            }
+        }
+
+        window.onload = fetchReceivedData;
+    </script>
 </body>
 </html>
