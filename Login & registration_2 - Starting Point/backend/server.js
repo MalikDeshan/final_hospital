@@ -4,9 +4,6 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const receivedRouter = require('../backend/api/received'); // Corrected import path
-const messagesRouter = require('../backend/api/messages'); // Corrected import path
-const authRouter = require('../backend/api/auth'); // Import auth router
 
 // Initialize Express app
 const app = express();
@@ -70,10 +67,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     }
 });
 
-// Use the existing routers
-app.use('/api', receivedRouter);
-app.use('/api/messages', messagesRouter); // Corrected route
-app.use('/api/auth', authRouter); // Use auth router
+
 
 // Start server
 app.listen(PORT, () => {
