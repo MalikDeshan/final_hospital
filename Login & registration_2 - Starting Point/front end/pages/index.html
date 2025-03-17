@@ -119,19 +119,19 @@
         }
 
         async function loginUser() {
-            const username = document.getElementById("login-username").value;
+            const email = document.getElementById("login-username").value;
             const password = document.getElementById("login-password").value;
 
-            if (!username || !password) {
+            if (!email || !password) {
                 alert("Please enter both username and password.");
                 return;
             }
 
             try {
-                const response = await fetch("http://localhost:5000/api/auth/signin", {
+                const response = await fetch("http://localhost:5000/api/auth/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ email, password })
                 });
                 const data = await response.json();
 
@@ -140,7 +140,7 @@
                     alert("Login successful!");
                     window.location.href = "home.html";
                 } else {
-                    alert(data.error);
+                    alert(data.msg);
                 }
             } catch (error) {
                 console.error("Login error:", error);
@@ -159,7 +159,7 @@
             }
 
             try {
-                const response = await fetch("http://localhost:5000/api/auth/signup", {
+                const response = await fetch("http://localhost:5000/api/auth/register", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ firstname, lastname, email, password })
@@ -170,7 +170,7 @@
                     alert("Registration successful! Please log in.");
                     toggleLogin();
                 } else {
-                    alert(data.error);
+                    alert(data.msg);
                 }
             } catch (error) {
                 console.error("Registration error:", error);
