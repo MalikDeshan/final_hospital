@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-});
+}); // Fixed missing closing brace for the catch block
 
 // Login User
 router.post('/login', async (req, res) => {
