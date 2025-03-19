@@ -127,18 +127,31 @@
                 const data = await response.json();
                 const receivedMessages = document.getElementById('receivedMessages');
                 receivedMessages.innerHTML = '';
+
                 data.forEach(item => {
                     const messageDiv = document.createElement('div');
                     messageDiv.classList.add('message-item');
+
+                    // Decrypt the message content
                     const messageContent = document.createElement('p');
                     messageContent.textContent = CryptoJS.AES.decrypt(item.message, 'secret key 123').toString(CryptoJS.enc.Utf8);
+
+                    // Create a download link for the decrypted file
                     const downloadLink = document.createElement('a');
-                    downloadLink.href = URL.createObjectURL(new Blob([CryptoJS.AES.decrypt(item.file, 'secret key 123').toString(CryptoJS.enc.Utf8)], { type: 'application/octet-stream' }));
-                    downloadLink.download = 'received_file';
-                    downloadLink.textContent = 'Download File';
-                    downloadLink.classList.add('download-link');
+                    if (item.file) {
+                        const fileContent = CryptoJS.AES.decrypt(item.file, 'secret key 123').toString(CryptoJS.enc.Utf8);
+                        const blob = new Blob([fileContent], { type: 'application/octet-stream' });
+                        downloadLink.href = URL.createObjectURL(blob);
+                        downloadLink.download = 'received_file';
+                        downloadLink.textContent = 'Download File';
+                        downloadLink.classList.add('download-link');
+                    }
+
                     messageDiv.appendChild(messageContent);
-                    messageDiv.appendChild(downloadLink);
+                    if (item.file) {
+                        messageDiv.appendChild(downloadLink);
+                    }
+
                     receivedMessages.appendChild(messageDiv);
                 });
             } else {

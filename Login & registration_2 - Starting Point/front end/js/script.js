@@ -67,119 +67,83 @@ window.addEventListener('resize', function () {
 
 const switchMode = document.getElementById('switch-mode');
 
-switchMode.addEventListener('change', function () {
-	if(this.checked) {
-		document.body.classList.add('dark');
-	} else {
-		document.body.classList.remove('dark');
-	}
-})
-
-
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const multer = require('multer');
-const CryptoJS = require('crypto-js');
-const app = express();
-
-mongoose.connect('mongodb://localhost:27017/yourdbname', { useNewUrlParser: true, useUnifiedTopology: true });
-
-const receiveSchema = new mongoose.Schema({
-	message: String,
-	file: String
-});
-
-const Receive = mongoose.model('Receive', receiveSchema);
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-app.post('/api/receive', upload.single('file'), async (req, res) => {
-	try {
-		const decryptedMessage = CryptoJS.AES.decrypt(req.body.message, 'secret key 123').toString(CryptoJS.enc.Utf8);
-		const decryptedFile = CryptoJS.AES.decrypt(req.file.buffer.toString(), 'secret key 123').toString(CryptoJS.enc.Utf8);
-		const receive = new Receive({
-			message: decryptedMessage,
-			file: decryptedFile
-		});
-		await receive.save();
-		res.status(200).send('Data received successfully');
-	} catch (error) {
-		res.status(500).send('Failed to receive data');
-	}
-});
-
-app.listen(3000, () => {
-	console.log('Server is running on port 3000');
-});
+if (switchMode) { // Add a null check
+	switchMode.addEventListener('change', function () {
+		if (this.checked) {
+			document.body.classList.add('dark');
+		} else {
+			document.body.classList.remove('dark');
+		}
+	});
+}
 
 
 
 
 /*recived files and messagea*/
-document.getElementById('messageForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+const messageForm = document.getElementById('messageForm');
 
-    const message = document.getElementById('message').value;
-    const fileInput = document.getElementById('file');
-    const file = fileInput.files[0];
+if (messageForm) { // Add a null check
+	messageForm.addEventListener('submit', function(event) {
+		event.preventDefault();
 
-    // Encrypt the message
-    const encryptedMessage = CryptoJS.AES.encrypt(message, 'secret key 123').toString();
+		const message = document.getElementById('message').value;
+		const fileInput = document.getElementById('file');
+		const file = fileInput.files[0];
 
-    // Encrypt the file if it exists
-    let encryptedFile = null;
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const fileContent = e.target.result;
-            encryptedFile = CryptoJS.AES.encrypt(fileContent, 'secret key 123').toString();
+		// Encrypt the message
+		const encryptedMessage = CryptoJS.AES.encrypt(message, 'secret key 123').toString();
 
-            // Create a FormData object to send the encrypted message and file
-            const formData = new FormData();
-            formData.append('message', encryptedMessage);
-            if (encryptedFile) {
-                formData.append('file', encryptedFile);
-            }
+		// Encrypt the file if it exists
+		let encryptedFile = null;
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				const fileContent = e.target.result;
+				encryptedFile = CryptoJS.AES.encrypt(fileContent, 'secret key 123').toString();
 
-            // Send the encrypted message and file to the server
-            fetch('http://localhost:5000/upload', {  // Change the URL to match your server
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                // Update the page with the received data
-                updateReceivedData(data.message, data.file);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-        reader.readAsDataURL(file);
-    } else {
-        // Create a FormData object to send the encrypted message
-        const formData = new FormData();
-        formData.append('message', encryptedMessage);
+				// Create a FormData object to send the encrypted message and file
+				const formData = new FormData();
+				formData.append('message', encryptedMessage);
+				if (encryptedFile) {
+					formData.append('file', encryptedFile);
+				}
 
-        // Send the encrypted message to the server
-        fetch('http://localhost:5000/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-            // Update the page with the received data
-            updateReceivedData(data.message);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    }
-});
+				// Send the encrypted message and file to the server
+				fetch('http://localhost:5000/upload', {  // Change the URL to match your server
+					method: 'POST',
+					body: formData
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Success:', data);
+					// Update the page with the received data
+					updateReceivedData(data.message, data.file);
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+				});
+			};
+			reader.readAsDataURL(file);
+		} else {
+			// Create a FormData object to send the encrypted message
+			const formData = new FormData();
+			formData.append('message', encryptedMessage);
+
+			// Send the encrypted message to the server
+			fetch('http://localhost:5000/upload', {
+				method: 'POST',
+				body: formData
+			})
+			.then(response => response.json())
+			.then(data => {
+				console.log('Success:', data);
+				// Update the page with the received data
+				updateReceivedData(data.message);
+			})
+			.catch((error) => {
+				console.error('Error:', error);
+			});
+		}
+	});
+}
