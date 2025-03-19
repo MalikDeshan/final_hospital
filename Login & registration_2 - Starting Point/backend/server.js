@@ -26,3 +26,12 @@ app.use('/api/auth', require('./routes/authRoutes'));
 
 // Start the server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+
+
+
+// Import message routes
+const messageRoutes = require('./routes/messageRoutes');
+
+// Use the routes for handling messages
+app.use('/api/messages', messageRoutes);
