@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="../styless/styles.css">
-    <title>Messages - AdminHub</title>
+    <title>Receive Files - AdminHub</title>
 </head>
 <body>
     <!-- SIDEBAR -->
@@ -33,7 +33,7 @@
                     <span class="text">Analytics</span>
                 </a>
             </li>
-            <li class="active">
+            <li>
                 <a href="messages.html">
                     <i class='bx bxs-message-dots'></i>
                     <span class="text">Messages</span>
@@ -45,7 +45,7 @@
                     <span class="text">Team</span>
                 </a>
             </li>
-            <li>
+            <li class="active">
                 <a href="receive_files.html">
                     <i class='bx bxs-file'></i>
                     <span class="text">Receive Files</span>
@@ -71,6 +71,7 @@
 
     <!-- CONTENT -->
     <section id="content">
+        <!-- NAVBAR -->
         <nav>
             <i class='bx bx-menu'></i>
             <a href="#" class="nav-link">Categories</a>
@@ -90,11 +91,13 @@
                 <img src="images/people.png">
             </a>
         </nav>
+        <!-- NAVBAR -->
 
+        <!-- MAIN -->
         <main>
             <div class="head-title">
                 <div class="left">
-                    <h1>Receive Messages and Files</h1>
+                    <h1>Received Messages</h1>
                     <ul class="breadcrumb">
                         <li>
                             <a href="home.html">Dashboard</a>
@@ -109,56 +112,52 @@
 
             <!-- Received Message and File Section -->
             <div class="received-message">
-                <h2>Received Message</h2>
-                <div id="receivedMessages"></div>
+                <h2>Received Messages</h2>
+                <div id="receivedMessages"></div>  <!-- Messages will be injected here -->
             </div>
         </main>
+        <!-- MAIN -->
     </section>
     <!-- CONTENT -->
 
-    <!-- External Script -->
     <script src="../js/script.js"></script>
-    <!-- CryptoJS Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <script>
+        // Function to fetch and display received messages
         async function fetchReceivedData() {
-            const response = await fetch('/api/received');
+            const response = await fetch('http://localhost:5000/api/messages/received');  // Ensure the correct API endpoint
             if (response.ok) {
-                const data = await response.json();
-                const receivedMessages = document.getElementById('receivedMessages');
-                receivedMessages.innerHTML = '';
+                const data = await response.json();  // Parse the received data
+                const receivedMessagesContainer = document.getElementById('receivedMessages');  // Get the container element
+                receivedMessagesContainer.innerHTML = '';  // Clear any existing content
 
+                // Loop through each message in the response data
                 data.forEach(item => {
                     const messageDiv = document.createElement('div');
-                    messageDiv.classList.add('message-item');
+                    messageDiv.classList.add('message-item');  // Add a CSS class for styling
 
                     // Decrypt the message content
-                    const messageContent = document.createElement('p');
-                    messageContent.textContent = CryptoJS.AES.decrypt(item.message, 'secret key 123').toString(CryptoJS.enc.Utf8);
+                    const decryptedMessage = CryptoJS.AES.decrypt(item.message, 'secret key 123').toString(CryptoJS.enc.Utf8);
+                    messageDiv.innerHTML = `<p>${decryptedMessage}</p>`;  // Display the decrypted message
 
-                    // Create a download link for the decrypted file
-                    const downloadLink = document.createElement('a');
+                    // If the message contains a file, create a download link
                     if (item.file) {
-                        const fileContent = CryptoJS.AES.decrypt(item.file, 'secret key 123').toString(CryptoJS.enc.Utf8);
-                        const blob = new Blob([fileContent], { type: 'application/octet-stream' });
-                        downloadLink.href = URL.createObjectURL(blob);
-                        downloadLink.download = 'received_file';
-                        downloadLink.textContent = 'Download File';
-                        downloadLink.classList.add('download-link');
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = item.file;  // Set the file URL
+                        downloadLink.download = 'received_file';  // Set the file download name
+                        downloadLink.textContent = 'Download File';  // Link text for download
+                        messageDiv.appendChild(downloadLink);  // Append the download link
                     }
 
-                    messageDiv.appendChild(messageContent);
-                    if (item.file) {
-                        messageDiv.appendChild(downloadLink);
-                    }
-
-                    receivedMessages.appendChild(messageDiv);
+                    // Append the messageDiv to the container on the page
+                    receivedMessagesContainer.appendChild(messageDiv);
                 });
             } else {
                 alert('Failed to fetch received data');
             }
         }
 
+        // Call the fetchReceivedData function when the page loads
         window.onload = fetchReceivedData;
     </script>
 </body>
