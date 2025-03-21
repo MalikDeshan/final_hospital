@@ -27,11 +27,41 @@ app.use('/api/auth', require('./routes/authRoutes'));
 // Start the server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
-
-
-
 // Import message routes
 const messageRoutes = require('./routes/messageRoutes');
 
 // Use the routes for handling messages
 app.use('/api/messages', messageRoutes);
+
+const AWS = require('aws-sdk');
+
+// Set up AWS S3
+const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: 'us-east-1'
+});
+
+// Function to upload a file to S3
+const uploadFile = async (fileContent, fileName) => {
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: fileName, // Name of the file to be saved
+        Body: fileContent
+    };
+
+    return s3.upload(params).promise();
+};
+
+// Function to generate a signed URL for downloading a file from S3
+const downloadFile = async (fileName) => {
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: fileName,
+        Expires: 60 * 60 // URL expires in 1 hour
+    };
+
+    return s3.getSignedUrlPromise('getObject', params);
+};
+
+module.exports = { uploadFile, downloadFile };

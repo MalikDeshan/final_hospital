@@ -147,3 +147,80 @@ if (messageForm) { // Add a null check
 		}
 	});
 }
+
+
+
+
+document.getElementById('messageForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const message = document.getElementById('message').value;
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
+
+    // Encrypt the message
+    const encryptedMessage = CryptoJS.AES.encrypt(message, 'secret key 123').toString();
+
+    const formData = new FormData();
+    formData.append('message', encryptedMessage);
+    if (file) {
+        formData.append('file', file);
+    }
+
+    try {
+        const response = await fetch('http://localhost:5000/api/messages', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            alert('Message sent successfully!');
+        } else {
+            alert(data.error || 'Failed to send message.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to send message.');
+    }
+});
+
+// Function to fetch and display received messages
+async function fetchReceivedData() {
+    try {
+        const response = await fetch('http://localhost:5000/api/messages/received');
+        if (response.ok) {
+            const data = await response.json();
+            const receivedMessagesContainer = document.getElementById('receivedMessages');
+            receivedMessagesContainer.innerHTML = '';
+
+            data.forEach(item => {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message-item');
+
+                // Decrypt the message content
+                const decryptedMessage = CryptoJS.AES.decrypt(item.message, 'secret key 123').toString(CryptoJS.enc.Utf8);
+                messageDiv.innerHTML = `<p>${decryptedMessage}</p>`;
+
+                // If the message contains a file, create a download link
+                if (item.file) {
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = item.file; // Use the signed URL
+                    downloadLink.target = '_blank';
+                    downloadLink.textContent = 'Download File';
+                    messageDiv.appendChild(downloadLink);
+                }
+
+                receivedMessagesContainer.appendChild(messageDiv);
+            });
+        } else {
+            alert('Failed to fetch received data');
+        }
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        alert('Failed to fetch received data');
+    }
+}
+
+// Call the fetchReceivedData function when the page loads
+window.onload = fetchReceivedData;
